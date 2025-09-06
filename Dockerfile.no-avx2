@@ -1,0 +1,12 @@
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY target/cpu-drift-demo-1.0.0.jar /app/app.jar
+
+# Simulate older CPU without AVX2 support
+# Use environment variable to force smaller vector size
+ENV JAVA_TOOL_OPTIONS="-XX:+UnlockDiagnosticVMOptions -XX:MaxVectorSize=16"
+CMD ["java", \
+     "--add-modules", "jdk.incubator.vector", \
+     "-Djava.cpu.features=sse4.1", \
+     "-Xms256m", "-Xmx512m", \
+     "-jar", "/app/app.jar"]

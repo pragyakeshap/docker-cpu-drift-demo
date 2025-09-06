@@ -1,0 +1,15 @@
+
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY target/cpu-drift-demo-1.0.0.jar /app/app.jar
+
+# AVX2 optimized version - requires AVX2 support
+# Enable vector API and force 256-bit vectors (AVX2)
+CMD ["java", \
+     "--add-modules", "jdk.incubator.vector", \
+     "-XX:+UnlockDiagnosticVMOptions", \
+     "-XX:+UseVectorCmov", \
+     "-XX:MaxVectorSize=32", \
+     "-XX:+UseSuperWord", \
+     "-Xms512m", "-Xmx1g", \
+     "-jar", "/app/app.jar"]
