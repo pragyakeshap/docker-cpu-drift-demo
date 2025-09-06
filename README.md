@@ -154,7 +154,7 @@ docker run --rm cpu-drift:baseline
 
 ---
 
-## Notes for the talk
+## Notes
 - The JVM auto-detects CPU features and can JIT vectorized code using AVX2.
 - When you force AVX2 (`UseAVX=2`) and move to a host without it, the process can crash at runtime.
 - Pinning to a **baseline** (`UseAVX=0`) restores portability (at the cost of some performance).
@@ -166,4 +166,3 @@ docker run --rm cpu-drift:baseline
 - Use **Run and Debug** → "Java: Run Avx2Demo (AVX2)" or "Java: Run Avx2Demo (Baseline)".
 - Docker tasks provided for quick image builds.
 
-Enjoy the demo!
