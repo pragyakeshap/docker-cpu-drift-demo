@@ -1,4 +1,3 @@
-
 # CPU Drift Demonstration with Java AVX2
 
 This project demonstrates **CPU Drift** - the phenomenon where the same Docker container image behaves differently or fails when run on different CPU architectures.
@@ -15,11 +14,10 @@ CPU Drift occurs when applications are optimized for specific CPU features (like
 
 This demo uses Java's Vector API to create an application that leverages AVX2 (256-bit vector) instructions for high-performance computation.
 
-### Three Scenarios:
+### Two Scenarios:
 
 1. **AVX2 Optimized** (`Dockerfile.avx2`) - Built for modern CPUs with AVX2 support
 2. **No-AVX2 Simulation** (`Dockerfile.no-avx2`) - Simulates older hardware without AVX2
-3. **Baseline** (`Dockerfile.baseline`) - Conservative settings for broad compatibility
 
 ## Quick Start
 
@@ -37,7 +35,6 @@ mvn clean package
 
 # Build Docker images
 docker build -t cpu-drift:avx2 -f Dockerfile.avx2 .
-docker build -t cpu-drift:baseline -f Dockerfile.baseline .
 docker build -t cpu-drift:no-avx2 -f Dockerfile.no-avx2 .
 
 # Test AVX2 version (optimized for modern CPUs)
@@ -45,9 +42,6 @@ docker run --rm cpu-drift:avx2
 
 # Test no-AVX2 version (simulates older hardware - will fail)
 docker run --rm cpu-drift:no-avx2
-
-# Test baseline version (runs everywhere)
-docker run --rm cpu-drift:baseline
 ```
 
 ## Expected Results
@@ -73,12 +67,6 @@ This is what would happen on older hardware:
 - Various embedded/cloud instances with older CPU features
 ```
 
-### 3. Baseline Version (Compatible)
-```
-✅ AVX2 support confirmed - proceeding with vectorized operations
-✅ This application successfully used 256-bit vector instructions!
-```
-
 ## Technical Details
 
 ### CPU Features Timeline
@@ -100,7 +88,6 @@ This is what would happen on older hardware:
 - Some embedded systems
 - Older cloud instances
 - Virtualized environments with restricted CPU features
-3. Re-run with a baseline JVM config (avoid AVX2) → **works everywhere**.
 
 > Tip: If you don't have a non‑AVX2 host, spin a small cloud VM that lacks AVX2 (older Xeon) for the demo.
 
@@ -117,7 +104,6 @@ This is what would happen on older hardware:
 - `src/main/java/com/example/Avx2Demo.java` — small hot loop to trigger JIT
 - `pom.xml` — Maven build (Java 17)
 - `Dockerfile.avx2` — runs HotSpot with `-XX:UseAVX=2` (forces AVX2)
-- `Dockerfile.baseline` — runs HotSpot with `-XX:UseAVX=0` (no AVX)
 - `.vscode/` — tasks & launch configs for VS Code
 - `.devcontainer/` — optional Dev Container to hack in a clean env
 
@@ -128,8 +114,6 @@ This is what would happen on older hardware:
 mvn -q clean package
 # Force AVX2 to show "works here"
 java -XX:+UnlockDiagnosticVMOptions -XX:UseAVX=2 -jar target/cpu-drift-demo-1.0.0.jar
-# Baseline that avoids AVX — should run on old boxes too
-java -XX:+UnlockDiagnosticVMOptions -XX:UseAVX=0 -jar target/cpu-drift-demo-1.0.0.jar
 ```
 
 ## Docker run (AVX2 forced) — use this on both hosts
@@ -142,27 +126,20 @@ docker run --rm cpu-drift:avx2
 # Now try the same image on a host *without* AVX2 → expect "Illegal instruction"
 ```
 
-## Docker run (baseline) — fallback that runs everywhere
-```bash
-docker build -t cpu-drift:baseline -f Dockerfile.baseline .
-docker run --rm cpu-drift:baseline
-```
-
 ### Expected outputs
-- **AVX2 host**: Both images run; JIT reports using AVX >= 2.
-- **Non‑AVX2 host**: `cpu-drift:avx2` may crash with `Illegal instruction`; `baseline` runs fine.
+- **AVX2 host**: AVX2 image runs; JIT reports using AVX >= 2.
+- **Non‑AVX2 host**: `cpu-drift:avx2` may crash with `Illegal instruction`.
 
 ---
 
 ## Notes
 - The JVM auto-detects CPU features and can JIT vectorized code using AVX2.
 - When you force AVX2 (`UseAVX=2`) and move to a host without it, the process can crash at runtime.
-- Pinning to a **baseline** (`UseAVX=0`) restores portability (at the cost of some performance).
 
 ---
 
 ## VS Code
 - Press **⌘⇧B / Ctrl+Shift+B** to build via Maven task.
-- Use **Run and Debug** → "Java: Run Avx2Demo (AVX2)" or "Java: Run Avx2Demo (Baseline)".
+- Use **Run and Debug** → "Java: Run Avx2Demo (AVX2)".
 - Docker tasks provided for quick image builds.
 
