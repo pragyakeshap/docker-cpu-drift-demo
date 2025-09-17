@@ -19,7 +19,7 @@ public class Avx2Demo {
         // Check CPU feature simulation flag
         String cpuFeatures = System.getProperty("java.cpu.features", "");
         if (cpuFeatures.contains("sse4.1") && !cpuFeatures.contains("avx2")) {
-            System.err.println("❌ SIMULATED FAILURE: This application requires AVX2 instructions!");
+            System.err.println("❌ FAILURE: This application requires AVX2 instructions!");
             System.err.println("Current CPU features: " + cpuFeatures);
             System.err.println("Required: AVX2 (256-bit vectors)");
             System.err.println("Available: Only SSE4.1 (128-bit vectors)");
@@ -97,7 +97,7 @@ public class Avx2Demo {
         // Demonstrate that this requires AVX2
         performComplexVectorOperations();
         
-        System.out.println("\n=== CPU Drift Demo Complete ===");
+        //System.out.println("\n=== CPU Drift Demo Complete ===");
         System.out.println("✅ This application successfully used " + SPECIES.vectorBitSize() + "-bit vector instructions!");
         System.out.println("⚡ Performance benefit: " + SPECIES.length() + "x parallelism per instruction");
         System.out.println("🏗️ Built for: Modern CPUs with AVX2 support (Intel Haswell+, AMD Excavator+)");
