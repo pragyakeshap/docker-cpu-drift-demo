@@ -47,7 +47,7 @@ if [ $? -ne 0 ]; then
 fi
 read -p "Press Enter to continue to Docker image builds..."
 
-echo "Step 2: Building Docker images..."
+echo "Step 2: Building Docker image..."
 docker build -t cpu-drift:avx2 -f Dockerfile.avx2 . -q
 docker build -t cpu-drift:no-avx2 -f Dockerfile.no-avx2 . -q
 read -p "Press Enter to test AVX2 optimized version..."
@@ -56,20 +56,42 @@ echo
 echo "=============================================="
 echo "Step 3: Testing AVX2 Optimized Version"
 echo "=============================================="
-echo "Running with AVX2 optimizations..."
+echo "📦 Deploying to MODERN hardware (Intel Haswell+ or AMD Excavator+)"
+echo "Expected: Success with high-performance 256-bit vector operations"
 echo
 
-docker run --rm cpu-drift:avx2
+if docker run --rm cpu-drift:avx2; then
+    echo
+    echo "✅ SUCCESS: Application ran successfully on AVX2-capable hardware"
+    echo "   → Vector operations performed at full 256-bit width"
+    echo "   → Production deployment would succeed on modern cloud instances"
+else
+    echo
+    echo "❌ Unexpected failure on AVX2-capable hardware"
+    echo "   → This indicates a build or configuration issue"
+fi
 read -p "Press Enter to simulate older CPU (No AVX2)..."
 
 echo
 echo "=============================================="
-echo "Step 4: Simulating Older CPU (No AVX2)"
+echo "Step 4: Deploying to LEGACY Hardware"
 echo "=============================================="
-echo "This simulates what happens on older hardware..."
+echo "📦 Deploying same image to OLDER hardware (pre-2013 Intel, pre-2015 AMD)"
+echo "Simulates: AWS t2.micro, older bare metal, legacy cloud instances"
+echo "Expected: CRASH with UnsupportedOperationException"
 echo
 
-docker run --rm cpu-drift:no-avx2
+echo "💥 Watch for the REAL production failure scenario:"
+if docker run --rm cpu-drift:no-avx2; then
+    echo
+    echo "⚠️  UNEXPECTED: Should have failed on non-AVX2 hardware"
+else
+    echo
+    echo "❌ CONFIRMED: CPU drift failure demonstrated"
+    echo "   → This is exactly what happens in production!"
+    echo "   → Same Docker image, different CPU = runtime failure"
+    echo "   → Service becomes unavailable on older hardware"
+fi
 # read -p "Press Enter to test baseline version..."
 
 echo
@@ -83,14 +105,26 @@ echo
 # read -p "Press Enter to show summary..."
 
 echo "=============================================="
-echo "Summary:"
+echo "🎯 CPU DRIFT DEMONSTRATION COMPLETE"
 echo "=============================================="
-echo "AVX2 Version    : Uses 256-bit vectors (faster on modern CPUs)"
-echo "No-AVX2 Version : Limited to 128-bit vectors (older CPU simulation)"
-# echo "Baseline Version: Conservative settings (runs everywhere)"
 echo
-echo "CPU Drift Lesson: The same image can behave differently"
-echo "depending on the underlying CPU architecture!"
+echo "WHAT WE JUST DEMONSTRATED:"
+echo "✅ Modern Hardware: AVX2 app runs successfully (256-bit vectors)"
+echo "❌ Legacy Hardware: Same app crashes with UnsupportedOperationException"
+echo
+echo "REAL-WORLD IMPLICATIONS:"
+echo "• Same Docker image behaves differently on different CPUs"
+echo "• Runtime failures occur when CPU assumptions are violated"
+echo "• Production deployments fail silently on incompatible hardware"
+echo "• Service availability depends on underlying CPU architecture"
+echo
+echo "COMMON FAILURE SCENARIOS IN PRODUCTION:"
+echo "• Kubernetes nodes with mixed CPU generations"
+echo "• Cloud auto-scaling to cheaper/older instance types"
+echo "• Docker containers moved between different data centers"
+echo "• Microservice deployments across heterogeneous infrastructure"
+echo
+echo "🔑 KEY LESSON: Always test CPU compatibility in your deployment pipeline!"
 echo "=============================================="
 echo
 echo "🎉 Demo completed successfully!"

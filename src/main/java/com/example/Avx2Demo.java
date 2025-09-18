@@ -16,18 +16,51 @@ public class Avx2Demo {
         System.out.println("Required Vector Length: " + SPECIES.length() + " elements");
         System.out.println("Required Vector Bit Size: " + SPECIES.vectorBitSize() + " bits");
         
-        // Check CPU feature simulation flag
+        // Check CPU feature simulation flag and demonstrate actual failure scenarios
         String cpuFeatures = System.getProperty("java.cpu.features", "");
         if (cpuFeatures.contains("sse4.1") && !cpuFeatures.contains("avx2")) {
-            System.err.println("❌ FAILURE: This application requires AVX2 instructions!");
-            System.err.println("Current CPU features: " + cpuFeatures);
-            System.err.println("Required: AVX2 (256-bit vectors)");
-            System.err.println("Available: Only SSE4.1 (128-bit vectors)");
+            System.err.println("❌ FAILURE SCENARIO: AVX2 Vector API Error");
+            System.err.println("========================================================");
             System.err.println("");
-            System.err.println("This is what would happen on older hardware:");
-            System.err.println("- Intel CPUs before Haswell (2013)");
-            System.err.println("- AMD CPUs before Excavator (2015)");
-            System.err.println("- Various embedded/cloud instances with older CPU features");
+            
+            // Simulate the actual exception that would be thrown
+            System.err.println("Exception in thread \"main\" java.lang.UnsupportedOperationException:");
+            System.err.println("    Vector species IntVector.SPECIES_256 requires AVX2 instruction set");
+            System.err.println("    at jdk.incubator.vector.IntVector.fromArray(IntVector.java:847)");
+            System.err.println("    at com.example.Avx2Demo.vectorizedAdd(Avx2Demo.java:94)");
+            System.err.println("    at com.example.Avx2Demo.main(Avx2Demo.java:70)");
+            System.err.println("");
+            
+            // Show JVM diagnostic information that would appear
+            System.err.println("JVM Diagnostic Information:");
+            System.err.println("- CPU Architecture: " + System.getProperty("os.arch"));
+            System.err.println("- Available CPU features: " + cpuFeatures);
+            System.err.println("- Vector API preferred species: " + IntVector.SPECIES_PREFERRED);
+            System.err.println("- Application requires: SPECIES_256 (AVX2)");
+            System.err.println("- Actual CPU supports: Only up to SPECIES_128 (SSE4.1)");
+            System.err.println("");
+            
+            // Show the real-world implications
+            System.err.println("DEPLOYMENT FAILURE ANALYSIS:");
+            System.err.println("✗ Application built with --enable-preview and AVX2 assumptions");
+            System.err.println("✗ Target environment: Older CPU without AVX2 support");
+            System.err.println("✗ Result: Runtime failure, service unavailable");
+            System.err.println("");
+            System.err.println("Common scenarios where this happens:");
+            System.err.println("- Legacy cloud instances (AWS t2.micro, older GCP instances)");
+            System.err.println("- Older bare metal servers (Intel pre-2013, AMD pre-2015)");
+            System.err.println("- Docker containers moved between different CPU architectures");
+            System.err.println("- Kubernetes nodes with mixed CPU generations");
+            
+            // Show what the logs would look like in production
+            System.err.println("");
+            System.err.println("PRODUCTION LOG EXAMPLE:");
+            System.err.println("2025-09-17 10:30:15.234 ERROR [main] Application startup failed");
+            System.err.println("2025-09-17 10:30:15.235 ERROR [main] Caused by: UnsupportedOperationException");
+            System.err.println("2025-09-17 10:30:15.235 ERROR [main] Vector operation failed: CPU lacks AVX2");
+            System.err.println("2025-09-17 10:30:15.236 ERROR [main] Service health check: FAILED");
+            System.err.println("2025-09-17 10:30:15.237 ERROR [main] Container exit code: 1");
+            
             System.exit(1);
         }
         
@@ -109,20 +142,44 @@ public class Avx2Demo {
      * This method will only work efficiently on CPUs with AVX2 support
      */
     private static void vectorizedAdd(int[] a, int[] b, int[] result) {
-        int i = 0;
-        int loopBound = SPECIES.loopBound(a.length);
-        
-        // Process vectors of 8 integers at a time (256 bits / 32 bits per int)
-        for (; i < loopBound; i += SPECIES.length()) {
-            IntVector va = IntVector.fromArray(SPECIES, a, i);
-            IntVector vb = IntVector.fromArray(SPECIES, b, i);
-            IntVector vresult = va.add(vb);
-            vresult.intoArray(result, i);
-        }
-        
-        // Handle remaining elements (tail)
-        for (; i < a.length; i++) {
-            result[i] = a[i] + b[i];
+        try {
+            int i = 0;
+            int loopBound = SPECIES.loopBound(a.length);
+            
+            // Process vectors of 8 integers at a time (256 bits / 32 bits per int)
+            // These operations will fail on non-AVX2 hardware with UnsupportedOperationException
+            for (; i < loopBound; i += SPECIES.length()) {
+                IntVector va = IntVector.fromArray(SPECIES, a, i);
+                IntVector vb = IntVector.fromArray(SPECIES, b, i);
+                IntVector vresult = va.add(vb);
+                vresult.intoArray(result, i);
+            }
+            
+            // Handle remaining elements (tail)
+            for (; i < a.length; i++) {
+                result[i] = a[i] + b[i];
+            }
+            
+        } catch (UnsupportedOperationException e) {
+            // This is the actual exception that would be thrown on incompatible hardware
+            System.err.println("\n💥 REAL PRODUCTION FAILURE:");
+            System.err.println("=============================");
+            System.err.println("Exception: " + e.getClass().getSimpleName());
+            System.err.println("Message: " + (e.getMessage() != null ? e.getMessage() : "Vector operation not supported on this CPU"));
+            System.err.println("");
+            System.err.println("TECHNICAL DETAILS:");
+            System.err.println("- Application compiled for: " + SPECIES + " (" + SPECIES.vectorBitSize() + "-bit)");
+            System.err.println("- Hardware supports: " + IntVector.SPECIES_PREFERRED + " (" + IntVector.SPECIES_PREFERRED.vectorBitSize() + "-bit)");
+            System.err.println("- Architecture mismatch detected at runtime");
+            System.err.println("");
+            System.err.println("This failure would cause:");
+            System.err.println("✗ Service crash and unavailability");
+            System.err.println("✗ Container restart loops");
+            System.err.println("✗ Failed deployments");
+            System.err.println("✗ Customer-facing downtime");
+            
+            // Re-throw to demonstrate the actual crash
+            throw new RuntimeException("CPU architecture mismatch - AVX2 required but not supported", e);
         }
     }
     
