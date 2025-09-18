@@ -1,8 +1,36 @@
 #!/bin/bash
 
+# Function to cleanup Docker on exit
+cleanup() {
+    echo
+    echo "=============================================="
+    echo "Shutting down Docker..."
+    echo "=============================================="
+    # Stop Docker Desktop on macOS
+    osascript -e 'quit app "Docker Desktop"' 2>/dev/null || true
+    echo "Docker shutdown initiated."
+}
+
+# Set trap to cleanup on script exit
+trap cleanup EXIT
+
 echo "=============================================="
 echo "     CPU Drift Demonstration Script"
 echo "=============================================="
+echo
+
+echo "Starting Docker Desktop..."
+echo "=============================================="
+# Start Docker Desktop on macOS
+open -a "Docker Desktop"
+echo "Waiting for Docker to start..."
+
+# Wait for Docker daemon to be ready
+while ! docker info >/dev/null 2>&1; do
+    echo "⏳ Docker is starting up..."
+    sleep 3
+done
+echo "✅ Docker is ready!"
 echo
 
 echo "This demo shows how the same container image can:"
@@ -64,3 +92,6 @@ echo
 echo "CPU Drift Lesson: The same image can behave differently"
 echo "depending on the underlying CPU architecture!"
 echo "=============================================="
+echo
+echo "🎉 Demo completed successfully!"
+echo "Docker will be shut down automatically..."
