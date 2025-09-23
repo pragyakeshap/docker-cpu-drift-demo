@@ -39,15 +39,21 @@ echo "2. ❌ Fail or perform poorly on older CPUs"
 # echo "3. ✅ Run everywhere with baseline settings"
 echo
 
+echo
+echo "=============================================="
 echo "Step 1: Building application..."
+echo "=============================================="
 mvn -q clean package
 if [ $? -ne 0 ]; then
     echo "❌ Build failed!"
     exit 1
 fi
-read -p "Press Enter to continue to Docker image builds..."
+#read -p "Press Enter to continue to Docker image build..."
 
+echo
+echo "=============================================="
 echo "Step 2: Building Docker image..."
+echo "=============================================="
 docker build -t cpu-drift:avx2 -f Dockerfile.avx2 . -q
 docker build -t cpu-drift:no-avx2 -f Dockerfile.no-avx2 . -q
 read -p "Press Enter to test AVX2 optimized version..."
@@ -64,13 +70,12 @@ if docker run --rm cpu-drift:avx2; then
     echo
     echo "✅ SUCCESS: Application ran successfully on AVX2-capable hardware"
     echo "   → Vector operations performed at full 256-bit width"
-    echo "   → Production deployment would succeed on modern cloud instances"
 else
     echo
     echo "❌ Unexpected failure on AVX2-capable hardware"
     echo "   → This indicates a build or configuration issue"
 fi
-read -p "Press Enter to simulate older CPU (No AVX2)..."
+read -p "Press Enter to try the same application on older CPU (No AVX2)..."
 
 echo
 echo "=============================================="
@@ -78,10 +83,10 @@ echo "Step 4: Deploying to LEGACY Hardware"
 echo "=============================================="
 echo "📦 Deploying same image to OLDER hardware (pre-2013 Intel, pre-2015 AMD)"
 echo "Simulates: AWS t2.micro, older bare metal, legacy cloud instances"
-echo "Expected: CRASH with UnsupportedOperationException"
+# echo "Expected: CRASH with UnsupportedOperationException"
 echo
 
-echo "💥 Watch for the REAL production failure scenario:"
+# echo "💥 Watch for the REAL production failure scenario:"
 if docker run --rm cpu-drift:no-avx2; then
     echo
     echo "⚠️  UNEXPECTED: Should have failed on non-AVX2 hardware"
@@ -102,7 +107,7 @@ echo
 # echo
 
 # docker run --rm cpu-drift:baseline
-# read -p "Press Enter to show summary..."
+read -p "Press Enter to show summary..."
 
 echo "=============================================="
 echo "🎯 CPU DRIFT DEMONSTRATION COMPLETE"

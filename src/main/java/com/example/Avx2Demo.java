@@ -134,7 +134,7 @@ public class Avx2Demo {
         System.out.println("✅ This application successfully used " + SPECIES.vectorBitSize() + "-bit vector instructions!");
         System.out.println("⚡ Performance benefit: " + SPECIES.length() + "x parallelism per instruction");
         System.out.println("🏗️ Built for: Modern CPUs with AVX2 support (Intel Haswell+, AMD Excavator+)");
-        System.out.println("⚠️ Incompatible with: Older CPUs, some cloud instances, embedded systems");
+        //System.out.println("⚠️ Incompatible with: Older CPUs, some cloud instances, embedded systems");
     }
 
     /**
